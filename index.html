@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lifeline Macro Builder</title>
+  <style>
+    :root{
+      --bg:#0f1115; --panel:#171a21; --muted:#8892a6; --text:#e8eef9; --accent:#81e6d9; --accent2:#c084fc; --danger:#f87171; --ok:#34d399;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--text);}
+    header{padding:24px 20px; border-bottom:1px solid #232735; display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:linear-gradient(180deg,rgba(15,17,21,.95),rgba(15,17,21,.85)); backdrop-filter: blur(6px); z-index:5}
+    h1{margin:0; font-size:22px; letter-spacing:.3px}
+    .wrap{max-width:1100px; margin:0 auto; padding:24px 20px 80px}
+    .grid{display:grid; grid-template-columns:1.1fr 1.4fr; gap:20px}
+    .card{background:var(--panel); border:1px solid #232735; border-radius:16px; padding:18px}
+    .card h2{margin:0 0 12px; font-size:18px}
+    .sub{color:var(--muted); font-size:13px}
+    .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .pill{background:#202636; border:1px solid #2b3144; border-radius:999px; padding:8px 12px; font-size:13px}
+    .option{display:flex; align-items:center; gap:10px; padding:10px 12px; border:1px solid #262c3e; border-radius:12px; background:#10131a}
+    .option input[type=number]{width:64px; padding:6px 8px; border-radius:8px; border:1px solid #2a3146; background:#0b0e14; color:var(--text)}
+    .option label{flex:1}
+    .muted{color:var(--muted)}
+    .totals{display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:12px}
+    .kpi{background:#0b0f17; border:1px solid #242a3b; border-radius:12px; padding:14px}
+    .kpi h3{margin:0; font-size:12px; color:var(--muted); font-weight:600; letter-spacing:.4px}
+    .kpi .val{margin-top:6px; font-size:20px; font-weight:700}
+    .btns{display:flex; gap:10px; flex-wrap:wrap; margin-top:14px}
+    .btn{border:1px solid #2a3146; background:#10131a; color:var(--text); padding:10px 14px; border-radius:10px; cursor:pointer}
+    .btn.primary{border-color:#2b463f; background:#0e201c}
+    .btn.accent{border-color:#355a61; background:#0b1e22}
+    .section{margin-top:12px}
+    details{border:1px dashed #2a3146; border-radius:12px; padding:10px 12px; background:#0e121a}
+    summary{cursor:pointer; color:var(--muted)}
+    .list{display:grid; grid-template-columns:1fr; gap:8px; max-height:420px; overflow:auto; padding-right:4px}
+    .badge{font-size:12px; background:#1b2131; padding:2px 8px; border-radius:999px; border:1px solid #2b3144; margin-left:6px}
+    .tag{font-size:12px; padding:2px 6px; border-radius:6px; border:1px solid #2b3144; color:#cdd7ee}
+    footer{position:fixed; left:0; right:0; bottom:0; background:#0b0e14; border-top:1px solid #232735; padding:10px 16px; display:flex; justify-content:center; gap:12px}
+    .notice{font-size:12px; color:var(--muted)}
+    .divider{height:1px; background:#22283a; margin:12px -18px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Lifeline Macro Builder</h1>
+    <div class="row">
+      <span class="pill">We total macros in real time</span>
+    </div>
+  </header>
+
+  <div class="wrap">
+    <div class="grid">
+
+      <!-- LEFT: Builder Controls -->
+      <div class="card">
+        <h2>1) Pick your base</h2>
+        <div id="bases" class="section row"></div>
+        <div class="sub">Base macros shown per serving. Water is default liquid; add a milk as a boost if desired.</div>
+
+        <div class="divider"></div>
+        <h2>2) Flavor (included)</h2>
+        <div class="row" id="flavors"></div>
+        <div class="sub">Sugar‑free flavor shots (0 cal): Coconut · Vanilla · Caramel · Chocolate · Hazelnut</div>
+
+        <div class="divider"></div>
+        <h2>3) Add boosts</h2>
+        <div class="sub">Standardized portions. Quantities multiply macros automatically.</div>
+        <div class="list" id="addins"></div>
+        <div class="btns">
+          <button class="btn" id="resetBtn">Reset</button>
+          <button class="btn accent" id="copyBtn">Copy summary</button>
+        </div>
+
+        <div class="section">
+          <details>
+            <summary>Notes & allergen info</summary>
+            <div class="sub" style="margin-top:8px">
+              Macros are estimates (±5–10%). Contains milk and may include peanuts/tree nuts/coconut depending on boosts. Cross‑contact possible; ask staff if you have allergies. Espresso shot adds ~64 mg caffeine per oz.
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <!-- RIGHT: Totals & Readout -->
+      <div class="card">
+        <h2>Totals</h2>
+        <div class="totals" id="totals">
+          <div class="kpi"><h3>Calories</h3><div class="val" id="kcal">0</div></div>
+          <div class="kpi"><h3>Protein (g)</h3><div class="val" id="p">0</div></div>
+          <div class="kpi"><h3>Carbs (g)</h3><div class="val" id="c">0</div></div>
+          <div class="kpi"><h3>Fat (g)</h3><div class="val" id="f">0</div></div>
+          <div class="kpi"><h3>Fiber (g)</h3><div class="val" id="fi">0</div></div>
+        </div>
+
+        <div class="section">
+          <h2>Order summary</h2>
+          <div id="summary" class="sub">No selections yet.</div>
+        </div>
+
+        <div class="section">
+          <details>
+            <summary>Advanced options</summary>
+            <div class="row" style="margin-top:10px">
+              <label class="option" title="If enabled, the base macros will scale slightly for 16 oz servings.">
+                <input type="checkbox" id="scaleBase" />
+                <label for="scaleBase">Scale base for 16 oz (1.3×)</label>
+              </label>
+            </div>
+          </details>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <span class="notice">Tip: Scan the QR on our menu to open this page. Your selections stay local to your device.</span>
+  </footer>
+
+  <script>
+    // --- Data model (edit to update macros) ---
+    const DATA = {
+      bases: [
+        { id:"shake", name:"Protein Shake (Whey)", kcal:110, p:25, c:1, f:0, fi:0 },
+        { id:"smoothie", name:"Protein Smoothie (Greek Yogurt + 1/2 Whey)", kcal:105, p:21, c:4.5, f:0, fi:0 },
+      ],
+      flavors: ["Chocolate","Vanilla","Strawberry"],
+      addins: [
+        { id:"oats", name:"Oats (30g)", kcal:110, p:4, c:19, f:2, fi:3 },
+        { id:"pb", name:"Peanut Butter (1 Tbsp)", kcal:95, p:4, c:3, f:8, fi:1 },
+        { id:"ab", name:"Almond Butter (1 Tbsp)", kcal:98, p:3, c:3, f:9, fi:1 },
+        { id:"chia", name:"Chia Seeds (1 Tbsp)", kcal:60, p:2, c:5, f:4, fi:5 },
+        { id:"banana", name:"Banana (1/2 med)", kcal:45, p:0, c:12, f:0, fi:1 },
+        { id:"straw", name:"Strawberries (100g)", kcal:32, p:1, c:7, f:0, fi:2 },
+        { id:"ygx", name:"Greek Yogurt (extra 80g)", kcal:50, p:9, c:4, f:0, fi:0 },
+        { id:"coco", name:"Coconut Flakes (1 Tbsp)", kcal:35, p:0, c:1, f:3, fi:1 },
+        { id:"honey", name:"Honey (1 Tbsp)", kcal:64, p:0, c:17, f:0, fi:0 },
+        { id:"spin", name:"Spinach (30g)", kcal:7, p:1, c:1, f:0, fi:1 },
+        { id:"almondmilk", name:"Almond Milk unsweet (1 cup)", kcal:30, p:1, c:1, f:2.5, fi:0 },
+        { id:"oatmilk", name:"Oat Milk unsweet (1 cup)", kcal:90, p:2, c:16, f:1.5, fi:2 },
+        { id:"cocoa", name:"Cocoa Powder (1 Tbsp)", kcal:12, p:1, c:3, f:0.7, fi:2 },
+        { id:"espresso", name:"Espresso Shot (1 oz)", kcal:0, p:0, c:0, f:0, fi:0, note:"~64 mg caffeine" },
+      ],
+      sfFlavors: ["Coconut","Vanilla","Caramel","Chocolate","Hazelnut"],
+    };
+
+    // --- State ---
+    let state = { base: null, flavor: null, boosts: {}, sf: new Set(), scaleBase:false };
+
+    // --- Helpers ---
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+    const round = n => Math.round(n * 10) / 10;
+
+    function renderBases(){
+      const el = document.getElementById('bases');
+      el.innerHTML = '';
+      DATA.bases.forEach(b => {
+        const id = `base_${b.id}`;
+        const wrap = document.createElement('label');
+        wrap.className = 'option';
+        wrap.innerHTML = `
+          <input type="radio" name="base" id="${id}" value="${b.id}">
+          <label for="${id}">${b.name}</label>
+          <span class="tag">${b.kcal} cal · ${b.p}P · ${b.c}C · ${b.f}F · ${b.fi}Fi</span>
+        `;
+        el.appendChild(wrap);
+      });
+      el.addEventListener('change', e => {
+        if(e.target.name==='base'){
+          state.base = DATA.bases.find(x => x.id===e.target.value);
+          calc();
+        }
+      });
+    }
+
+    function renderFlavors(){
+      const el = document.getElementById('flavors');
+      el.innerHTML = '';
+      DATA.flavors.forEach(f => {
+        const id = `flav_${f}`;
+        const btn = document.createElement('label');
+        btn.className = 'pill';
+        btn.innerHTML = `<input type="radio" name="flavor" id="${id}" value="${f}" style="margin-right:6px">${f}`;
+        el.appendChild(btn);
+      });
+      el.addEventListener('change', e => {
+        if(e.target.name==='flavor'){
+          state.flavor = e.target.value;
+          calc();
+        }
+      });
+    }
+
+    function renderAddins(){
+      const el = document.getElementById('addins');
+      el.innerHTML = '';
+      DATA.addins.forEach(a => {
+        const id = `ai_${a.id}`;
+        const row = document.createElement('div');
+        row.className = 'option';
+        row.innerHTML = `
+          <input type="checkbox" id="${id}" data-id="${a.id}">
+          <label for="${id}">${a.name} ${a.note ? `<span class='badge'>${a.note}</span>`:''}</label>
+          <input type="number" id="qty_${a.id}" min="1" step="1" value="1" disabled>
+          <span class="muted">per serving</span>
+        `;
+        el.appendChild(row);
+      });
+
+      // sugar-free flavors (no macro impact)
+      const sf = document.createElement('div');
+      sf.className='option';
+      sf.innerHTML = `<div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+        <strong>Sugar‑Free Flavor Shots</strong>
+        ${DATA.sfFlavors.map(s=>`<label class='pill'><input type='checkbox' class='sf' value='${s}' style='margin-right:6px'>${s}</label>`).join('')}
+        <span class='muted'>0 cal (limit 2 recommended)</span>
+      </div>`;
+      el.appendChild(sf);
+
+      el.addEventListener('change', e => {
+        const t = e.target;
+        if(t.matches('input[type=checkbox][id^=ai_]')){
+          const id = t.dataset.id;
+          const qty = document.getElementById(`qty_${id}`);
+          if(t.checked){ qty.disabled=false; state.boosts[id] = 1; }
+          else { qty.disabled=true; state.boosts[id] = 0; qty.value = 1; }
+          calc();
+        }
+        if(t.matches('input.sf')){
+          if(t.checked) state.sf.add(t.value); else state.sf.delete(t.value);
+        }
+      });
+
+      el.addEventListener('input', e => {
+        const t = e.target;
+        if(t.matches('input[type=number][id^=qty_]')){
+          const id = t.id.replace('qty_','');
+          const v = Math.max(1, parseInt(t.value||'1',10));
+          state.boosts[id] = v;
+          t.value = v;
+          calc();
+        }
+      });
+    }
+
+    function calc(){
+      let kcal=0,p=0,c=0,f=0,fi=0;
+      let lines=[];
+
+      if(state.base){
+        const scale = state.scaleBase ? 1.3 : 1.0;
+        kcal += state.base.kcal*scale; p += state.base.p*scale; c += state.base.c*scale; f += state.base.f*scale; fi += state.base.fi*scale;
+        lines.push(`${state.base.name}` + (state.scaleBase?" ×1.3":""));
+      }
+      const addinMap = Object.entries(state.boosts).filter(([,q])=>q>0);
+      addinMap.forEach(([id,q])=>{
+        const a = DATA.addins.find(x=>x.id===id);
+        if(!a) return;
+        kcal += a.kcal*q; p += a.p*q; c += a.c*q; f += a.f*q; fi += a.fi*q;
+        lines.push(`${a.name}${q>1?` ×${q}`:''}`);
+      });
+
+      // Update KPIs
+      document.getElementById('kcal').textContent = Math.round(kcal);
+      document.getElementById('p').textContent = round(p);
+      document.getElementById('c').textContent = round(c);
+      document.getElementById('f').textContent = round(f);
+      document.getElementById('fi').textContent = round(fi);
+
+      // Summary
+      const flav = state.flavor ? `, Flavor: ${state.flavor}` : '';
+      const sf = state.sf.size ? `, SF Shots: ${Array.from(state.sf).join(' · ')}` : '';
+      const boosts = addinMap.length? `\nBoosts: ${addinMap.map(([id,q])=>{const a=DATA.addins.find(x=>x.id===id);return `${a.name}${q>1?` ×${q}`:''}`}).join(' | ')}` : '';
+      const sum = (state.base?`Base: ${state.base.name}${flav}${sf}${boosts}`:"No selections yet.");
+      document.getElementById('summary').textContent = sum;
+    }
+
+    function resetAll(){
+      state = { base:null, flavor:null, boosts:{}, sf:new Set() };
+      $$('input[type=radio][name=base]').forEach(i=>i.checked=false);
+      $$('input[type=radio][name=flavor]').forEach(i=>i.checked=false);
+      $$('#addins input[type=checkbox][id^=ai_]').forEach(cb=>{cb.checked=false});
+      $$('#addins input[type=number][id^=qty_]').forEach(n=>{n.value=1; n.disabled=true});
+      $$('#addins input.sf').forEach(i=>{i.checked=false});
+      
+      calc();
+    }
+
+    function copySummary(){
+      const kcal = document.getElementById('kcal').textContent;
+      const p = document.getElementById('p').textContent;
+      const c = document.getElementById('c').textContent;
+      const f = document.getElementById('f').textContent;
+      const fi = document.getElementById('fi').textContent;
+      const txt = `Lifeline Order\n${document.getElementById('summary').textContent}\nTotals: ${kcal} cal | ${p}P / ${c}C / ${f}F / ${fi}Fi`;
+      navigator.clipboard.writeText(txt).then(()=>{
+        const old = $('#copyBtn').textContent; $('#copyBtn').textContent='Copied'; setTimeout(()=>$('#copyBtn').textContent=old,900);
+      });
+    }
+
+    // Attach events
+    document.getElementById('resetBtn').addEventListener('click', resetAll);
+    document.getElementById('copyBtn').addEventListener('click', copySummary);
+    document.getElementById('scaleBase').addEventListener('change', e=>{ state.scaleBase = e.target.checked; calc();});
+
+    // Init
+    renderBases();
+    renderFlavors();
+    renderAddins();
+    calc();
+  </script>
+</body>
+</html>
